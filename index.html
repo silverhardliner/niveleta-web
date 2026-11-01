@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="en" data-lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Niveleta: ground movement history before you build</title>
+<meta name="description" content="Niveleta turns European satellite measurements into one page about the buildings around a construction site: stable or moving, and how fast, over the years before the build.">
+<meta property="og:title" content="Niveleta">
+<meta property="og:description" content="Before you dig, see how the ground has moved.">
+<meta property="og:image" content="https://niveleta.cz/img/og.png">
+<meta property="og:url" content="https://niveleta.cz/">
+<meta name="theme-color" content="#171c1a">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600&display=swap">
+<script>
+  // language: saved choice, else the browser's; English without JS
+  (function () {
+    var l = null;
+    try { l = localStorage.getItem("niveleta-lang"); } catch (e) {}
+    if (l !== "cs" && l !== "en") l = /^(cs|sk)/i.test(navigator.language || "") ? "cs" : "en";
+    document.documentElement.setAttribute("data-lang", l);
+    document.documentElement.lang = l;
+  })();
+</script>
+<style>
+/* Same visual language as the pitch deck: dark basalt ground, bone text,
+   colour only carries data meaning (red = the ground sinks, blue = stable). */
+:root {
+  --ground: #171c1a;
+  --raised: #20272a;
+  --rule: #323c38;
+  --rule-strong: #4a5650;
+  --bone: #ede9e0;
+  --bone-2: #b8bdb5;
+  --quiet: #8b938c;
+  --sink: #f0644a;
+  --stable: #8db7ce;
+  --sans: "Barlow", Arial, sans-serif;
+  --cond: "Barlow Condensed", "Arial Narrow", Arial, sans-serif;
+  --wrap: 1160px;
+  --gutter: clamp(16px, 4vw, 40px);
+  color-scheme: dark;
+}
+html[data-lang="en"] [lang="cs"], html[data-lang="cs"] [lang="en"] { display: none !important; }
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body {
+  margin: 0; background: var(--ground); color: var(--bone);
+  font: 400 18px/1.55 var(--sans);
+  -webkit-font-smoothing: antialiased;
+}
+a { color: inherit; }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--stable); outline-offset: 3px; border-radius: 2px; }
+p { margin: 0; }
+h1, h2, h3 { margin: 0; font-weight: 600; text-wrap: balance; }
+.wrap { max-width: var(--wrap); margin: 0 auto; padding: 0 var(--gutter); }
+
+/* header */
+.top { border-bottom: 1px solid var(--rule); }
+.top .wrap { display: flex; align-items: center; gap: 24px; min-height: 68px; }
+.brand { display: flex; align-items: center; gap: 12px; text-decoration: none; font: 600 22px var(--sans); letter-spacing: 0.01em; }
+.mark { width: 40px; height: 19px; overflow: visible; flex: none; }
+.mark .m-level, .mark .m-sink { fill: none; stroke-width: 4.5; stroke-linecap: round; stroke-linejoin: round; }
+.mark .m-level { stroke: var(--bone); }
+.mark .m-sink { stroke: var(--sink); }
+.mark .m-dot { fill: var(--sink); }
+.nav { display: flex; gap: 24px; margin-left: auto; align-items: center; }
+.nav a { text-decoration: none; color: var(--bone-2); font-size: 16px; }
+.nav a:hover { color: var(--bone); }
+.lang {
+  font: 600 14px var(--cond); letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--bone-2); background: none; border: 1px solid var(--rule-strong);
+  border-radius: 3px; padding: 5px 10px; cursor: pointer;
+}
+.lang:hover { color: var(--bone); border-color: var(--quiet); }
+@media (max-width: 640px) { .nav a { display: none; } }
+
+/* hero */
+.hero .wrap {
+  display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+  gap: clamp(24px, 5vw, 64px); align-items: center;
+  padding-top: clamp(40px, 8vw, 96px); padding-bottom: clamp(48px, 8vw, 104px);
+}
+.eyebrow {
+  font: 600 15px var(--cond); letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--quiet); margin-bottom: 18px;
+}
+h1 { font-size: clamp(38px, 5.6vw, 70px); line-height: 1.04; letter-spacing: -0.015em; }
+h1 .sink { color: var(--sink); }
+.lead { font-size: clamp(18px, 1.9vw, 21px); color: var(--bone-2); margin-top: 24px; max-width: 34em; }
+.actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 32px; }
+.btn {
+  display: inline-block; text-decoration: none; font: 600 17px var(--sans);
+  padding: 12px 20px; border-radius: 3px; border: 1px solid var(--rule-strong); color: var(--bone);
+}
+.btn:hover { border-color: var(--bone-2); }
+.btn.primary { background: var(--bone); color: var(--ground); border-color: var(--bone); }
+.btn.primary:hover { background: #fff; }
+.cloud { margin: 0; }
+.cloud img { display: block; width: 100%; height: auto; }
+.cloud figcaption { font-size: 14px; color: var(--quiet); margin-top: 10px; max-width: 34em; }
+.cloud figcaption .sink { color: var(--sink); }
+@media (max-width: 820px) {
+  .hero .wrap { grid-template-columns: 1fr; }
+  .cloud { max-width: 480px; }
+}
+
+/* sections */
+section.band { border-top: 1px solid var(--rule); }
+section.band > .wrap { padding-top: clamp(48px, 7vw, 88px); padding-bottom: clamp(48px, 7vw, 88px); }
+h2 { font-size: clamp(28px, 3.4vw, 42px); line-height: 1.1; letter-spacing: -0.01em; max-width: 22em; }
+.prose { display: grid; gap: 16px; margin-top: 20px; max-width: 40em; color: var(--bone-2); font-size: 19px; }
+
+/* problem: the survey-day timeline, as on slide 2 */
+.split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(28px, 5vw, 64px); align-items: center; }
+@media (max-width: 820px) { .split { grid-template-columns: 1fr; } }
+.timeline { width: 100%; height: auto; overflow: visible; }
+.timeline .axis { stroke: var(--rule-strong); stroke-width: 2; }
+.timeline .gap { stroke: var(--quiet); stroke-width: 2; stroke-dasharray: 3 7; }
+.timeline .tick { fill: var(--quiet); font: 500 19px var(--sans); }
+.timeline .day { fill: var(--bone); }
+.timeline .lbl { fill: var(--bone-2); font: 500 20px var(--sans); }
+.timeline .lbl-q { fill: var(--quiet); font: 500 20px var(--sans); }
+
+/* how it works: a real sequence, so the steps are numbered */
+.steps { list-style: none; padding: 0; margin: 36px 0 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; counter-reset: step; }
+.steps li { background: var(--raised); border-radius: 4px; padding: 24px 24px 28px; counter-increment: step; }
+.steps li::before {
+  content: counter(step); display: block; font: 600 34px/1 var(--cond); color: var(--quiet); margin-bottom: 18px;
+}
+.steps h3 { font-size: 21px; line-height: 1.2; }
+.steps p { color: var(--bone-2); margin-top: 8px; font-size: 17px; }
+@media (max-width: 820px) { .steps { grid-template-columns: 1fr; } }
+.for { margin-top: 28px; color: var(--quiet); font-size: 17px; max-width: 46em; }
+
+/* limits */
+.limits { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; margin-top: 36px; }
+@media (max-width: 820px) { .limits { grid-template-columns: 1fr; } }
+.limits > div { border: 1px solid var(--rule); border-radius: 4px; padding: 24px; }
+.limits h3 { font: 600 15px var(--cond); letter-spacing: 0.12em; text-transform: uppercase; color: var(--quiet); }
+.limits ul { margin: 14px 0 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+.limits li { padding-left: 22px; position: relative; color: var(--bone-2); }
+.limits li::before { content: ""; position: absolute; left: 2px; top: 0.62em; width: 9px; height: 2px; background: var(--quiet); }
+.limits .yes li::before { background: var(--stable); }
+
+/* team */
+.team { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-top: 32px; }
+@media (max-width: 820px) { .team { grid-template-columns: 1fr; } }
+.person { border-top: 2px solid var(--rule-strong); padding-top: 16px; }
+.person strong { display: block; font-size: 20px; font-weight: 600; }
+.person span { display: block; color: var(--bone-2); }
+.person em { display: block; font-style: normal; color: var(--quiet); font-size: 16px; }
+.note { margin-top: 28px; color: var(--bone-2); }
+
+/* contact */
+.contact h2 { max-width: 18em; }
+.contact .actions { margin-top: 28px; }
+.mail { font: 500 clamp(20px, 2.4vw, 26px) var(--sans); color: var(--bone); text-decoration-color: var(--sink); text-underline-offset: 6px; text-decoration-thickness: 2px; }
+
+footer { border-top: 1px solid var(--rule); }
+footer .wrap { padding-top: 28px; padding-bottom: 40px; display: grid; gap: 8px; color: var(--quiet); font-size: 14px; }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#">
+      <svg viewBox="0 0 64 30" class="mark" aria-hidden="true"><path d="M3,8 H28" class="m-level"/><path d="M28,8 C36,8 40,22 52,22" class="m-sink"/><circle cx="56" cy="22" r="5" class="m-dot"/></svg>
+      Niveleta
+    </a>
+    <nav class="nav" aria-label="Main">
+      <a href="#how"><span lang="en">How it works</span><span lang="cs">Jak to funguje</span></a>
+      <a href="https://silverhardliner.github.io/karvinsko-z-orbity/"><span lang="en">Demo</span><span lang="cs">Ukázka</span></a>
+      <a href="#contact"><span lang="en">Contact</span><span lang="cs">Kontakt</span></a>
+      <button class="lang" type="button" id="lang"><span lang="en">Česky</span><span lang="cs">English</span></button>
+    </nav>
+  </div>
+</header>
+
+<main>
+<section class="hero">
+  <div class="wrap">
+    <div>
+      <p class="eyebrow"><span lang="en">Ground movement history from satellites</span><span lang="cs">Historie pohybu terénu z družic</span></p>
+      <h1>
+        <span lang="en">Before you dig, see how the ground <span class="sink">has moved.</span></span>
+        <span lang="cs">Než začnete kopat, podívejte se, jak se <span class="sink">hýbala zem.</span></span>
+      </h1>
+      <p class="lead">
+        <span lang="en">We turn European satellite measurements into one page about the buildings around your construction site: stable or moving, and how fast, over the years before the build.</span>
+        <span lang="cs">Z evropských družicových měření skládáme jednu stránku o budovách kolem vaší stavby: stabilní, nebo v pohybu, a jak rychle, za roky před stavbou.</span>
+      </p>
+      <div class="actions">
+        <a class="btn primary" href="#contact"><span lang="en">Write to us</span><span lang="cs">Napište nám</span></a>
+        <a class="btn" href="https://silverhardliner.github.io/karvinsko-z-orbity/"><span lang="en">Open the Karviná demo</span><span lang="cs">Otevřít ukázku z Karviné</span></a>
+      </div>
+    </div>
+    <figure class="cloud">
+      <img src="img/karvina-cloud.png" width="1200" height="1050" alt="" >
+      <figcaption>
+        <span lang="en">Karviná, 2020–2024. Every dot is a 100 m cell of satellite measurements. <span class="sink">Red</span> = the ground is sinking.</span>
+        <span lang="cs">Karvinsko, 2020–2024. Každá tečka je čtverec 100 × 100 m družicových měření. <span class="sink">Červená</span> = terén klesá.</span>
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="band">
+  <div class="wrap split">
+    <div>
+      <h2><span lang="en">A survey shows one day. Not the years before.</span><span lang="cs">Pasport ukáže jeden den. Ne roky předtím.</span></h2>
+      <div class="prose">
+        <p><span lang="en">Before every build, someone checks the houses next door and photographs every crack. If a wall cracks later, nobody can prove whether the ground was already moving.</span><span lang="cs">Před každou stavbou někdo projde sousední domy a nafotí každou prasklinu. Když pak praskne zeď, nikdo nedokáže, jestli se zem hýbala už předtím.</span></p>
+        <p><span lang="en">European Sentinel-1 satellites have measured the ground every few days since 2016, in millimetres, and the data is free. But it comes raw: millions of points from several releases that don’t fit together. We turn them into one answer per building.</span><span lang="cs">Evropské družice Sentinel-1 měří terén každých pár dní od roku 2016, v milimetrech, a data jsou zdarma. Jsou ale surová: miliony bodů z několika vydání, které do sebe nezapadají. My z nich děláme jednu odpověď pro každou budovu.</span></p>
+      </div>
+    </div>
+    <svg class="timeline" viewBox="0 0 560 150" role="img" aria-labelledby="tl-t">
+      <title id="tl-t">The years before the survey day have no record on the ground, but satellites measured them.</title>
+      <line x1="10" y1="80" x2="470" y2="80" class="gap"/>
+      <line x1="470" y1="80" x2="550" y2="80" class="axis"/>
+      <circle cx="500" cy="80" r="8" class="day"/>
+      <text x="550" y="50" text-anchor="end" class="lbl"><tspan lang="en">survey day</tspan><tspan lang="cs">den pasportu</tspan></text>
+      <text x="10" y="50" class="lbl-q"><tspan lang="en">the years before: no record</tspan><tspan lang="cs">roky předtím: žádný záznam</tspan></text>
+      <text x="10" y="118" class="tick">2016</text>
+      <text x="166" y="118" class="tick" text-anchor="middle">2019</text>
+      <text x="322" y="118" class="tick" text-anchor="middle">2022</text>
+      <text x="500" y="118" class="tick" text-anchor="middle">2026</text>
+    </svg>
+  </div>
+</section>
+
+<section class="band" id="how">
+  <div class="wrap">
+    <h2><span lang="en">How it works</span><span lang="cs">Jak to funguje</span></h2>
+    <ol class="steps">
+      <li>
+        <h3><span lang="en">Send us the site</span><span lang="cs">Pošlete nám místo</span></h3>
+        <p><span lang="en">An address or a parcel. Before the dig, or when a dispute starts.</span><span lang="cs">Adresu nebo parcelu. Před výkopem, nebo když začne spor.</span></p>
+      </li>
+      <li>
+        <h3><span lang="en">We read every measurement around it</span><span lang="cs">Přečteme všechna měření kolem</span></h3>
+        <p><span lang="en">All published releases of the European Ground Motion Service, joined into one record. Where needed, we process the raw satellite images ourselves for the latest months.</span><span lang="cs">Všechna zveřejněná vydání Evropské služby pro pohyby terénu (EGMS), spojená do jedné řady. Kde je potřeba, zpracujeme surové družicové snímky za poslední měsíce sami.</span></p>
+      </li>
+      <li>
+        <h3><span lang="en">You get one page</span><span lang="cs">Dostanete jednu stránku</span></h3>
+        <p><span lang="en">An annex for the pre-construction survey: for each neighbouring building, stable or moving, and how fast.</span><span lang="cs">Přílohu k pasportizaci: u každé sousední budovy stabilní, nebo v pohybu, a jak rychle.</span></p>
+      </li>
+    </ol>
+    <p class="for"><span lang="en">For survey firms that document buildings before construction, for geotechnical and structural engineers, and for the builders who pay for the survey.</span><span lang="cs">Pro firmy, které dělají pasportizace, pro geotechniky a statiky a pro stavebníky, kteří pasport platí.</span></p>
+  </div>
+</section>
+
+<section class="band">
+  <div class="wrap">
+    <h2><span lang="en">What the page tells you, and what it doesn’t</span><span lang="cs">Co stránka řekne, a co ne</span></h2>
+    <div class="limits">
+      <div class="yes">
+        <h3><span lang="en">It tells you</span><span lang="cs">Řekne</span></h3>
+        <ul>
+          <li><span lang="en">The vertical movement trend of each building over 5 to 9 years.</span><span lang="cs">Trend svislého pohybu každé budovy za 5 až 9 let.</span></li>
+          <li><span lang="en">Against thresholds fixed in advance and printed on every page.</span><span lang="cs">Podle prahů daných předem a vytištěných na každé stránce.</span></li>
+          <li><span lang="en">Where there is no measurement, it says so.</span><span lang="cs">Kde měření chybí, to tam stojí.</span></li>
+        </ul>
+      </div>
+      <div>
+        <h3><span lang="en">It doesn’t</span><span lang="cs">Neřekne</span></h3>
+        <ul>
+          <li><span lang="en">Trends finer than about 1 mm a year, or sudden movement on a single day.</span><span lang="cs">Trendy jemnější než asi 1 mm za rok ani náhlý pohyb během jednoho dne.</span></li>
+          <li><span lang="en">Anything in forest or on steep slopes, where satellites have no points.</span><span lang="cs">Nic o lese a strmých svazích, kde družice body nemají.</span></li>
+          <li><span lang="en">Sideways movement: we report vertical movement only.</span><span lang="cs">Vodorovné posuny: uvádíme jen svislý pohyb.</span></li>
+          <li><span lang="en">What caused the movement. That stays with the engineer who signs the survey.</span><span lang="cs">Co pohyb způsobilo. To zůstává na inženýrovi, který pasport podepisuje.</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="band">
+  <div class="wrap">
+    <h2><span lang="en">Who we are</span><span lang="cs">Kdo jsme</span></h2>
+    <div class="team">
+      <p class="person"><strong>Matěj Kopecký</strong><span lang="en">Data and delivery</span><span lang="cs">Data a dodávka</span><em lang="en">Software engineer</em><em lang="cs">Softwarový inženýr</em></p>
+      <p class="person"><strong>Jan Chleboun</strong><span lang="en">Product and quality</span><span lang="cs">Produkt a kvalita</span><em lang="en">AI researcher</em><em lang="cs">Výzkumník v oblasti AI</em></p>
+      <p class="person"><strong>Alex Bečka</strong><span lang="en">Market</span><span lang="cs">Trh</span><em lang="en">Product manager</em><em lang="cs">Produktový manažer</em></p>
+    </div>
+    <p class="note"><span lang="en">Prague. Finalists of the ESA BIC Liftoff Challenge 2026.</span><span lang="cs">Praha. Finalisté ESA BIC Liftoff Challenge 2026.</span></p>
+  </div>
+</section>
+
+<section class="band contact" id="contact">
+  <div class="wrap">
+    <h2><span lang="en">Know a site well?</span><span lang="cs">Znáte dobře nějaké místo?</span></h2>
+    <div class="prose">
+      <p><span lang="en">Send us its address. We’ll send back its ground movement history, and we’d like to hear whether it matches what you know.</span><span lang="cs">Pošlete nám jeho adresu. Pošleme vám zpět historii pohybu terénu a rádi uslyšíme, jestli sedí s tím, co o něm víte.</span></p>
+    </div>
+    <div class="actions">
+      <a class="mail" href="mailto:matej.kopecky99@seznam.cz">matej.kopecky99@seznam.cz</a>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p><span lang="en">Contains modified Copernicus Sentinel-1 data. Ground motion data: European Ground Motion Service (EGMS), © European Union, Copernicus Land Monitoring Service, European Environment Agency.</span><span lang="cs">Obsahuje upravená data Copernicus Sentinel-1. Data o pohybu terénu: European Ground Motion Service (EGMS), © Evropská unie, Copernicus Land Monitoring Service, Evropská agentura pro životní prostředí.</span></p>
+    <p>© 2026 Niveleta</p>
+  </div>
+</footer>
+
+<script>
+  document.getElementById("lang").addEventListener("click", function () {
+    var l = document.documentElement.getAttribute("data-lang") === "cs" ? "en" : "cs";
+    document.documentElement.setAttribute("data-lang", l);
+    document.documentElement.lang = l;
+    try { localStorage.setItem("niveleta-lang", l); } catch (e) {}
+  });
+</script>
+</body>
+</html>
